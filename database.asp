@@ -3,40 +3,33 @@ Class Database
   Private pConnectionString
   Private pConnection
 
-  Public Property Let ConnectionString
+  Public Property Get ConnectionString
     ConnectionString = pConnectionString
   End Property
 
   Public Default Function construct(connectionString)
     pConnectionString = connectionString
+    Set pConnection = CreateObject("ADODB.Connection")
     Set construct = Me
+    Call pConnection.Open(connectionString)
   End Function
   
   Private Sub Class_Terminate
-    If Not pConnection Is Nothing Then 
-      Call pConnection.Close()
-    End If
+    Call pConnection.Close()
     Set pConnection = Nothing
   End Sub
   
   Public Function ExecuteQuery(commandText, parameters)
-    ' Turn me in to a recordset
+    Dim rs : Set rs = CreateObject("ADODB.Recordset")
+    
+    rs.Open commandText, pConnection, adOpenStatic, adLockOptimistic
+    
+    Set ExecuteQuery = rs
+    Set rs = Nothing
   End Function
   
-  Public Sub ExecuteNonQuery(commandText, parameters)
-    ' Execute a non query
-  End Sub
-  
-  Private Function GetOpenConnection()
-    If pConnection Is Nothing Then
-      Set pConnection = CreateObject("ADODB.Connection")
-    End If
-    
-    If pConnection.State = 0 Then 'Closed
-      Call pConnection.Open(pConnectionString)
-    End If
-    
-    Set GetOpenConnection = pConnection
+  Public Function ExecuteNonQuery(commandText, parameters)
+    Set ExecuteNonQuery = pConnection.Execute(commandText)
   End Function
 End Class
 %>
